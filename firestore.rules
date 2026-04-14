@@ -1,0 +1,113 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: writers
+// Document ID: auto-generated
+// Fields:
+//   - name: string (required) - Writer's name
+//   - rate: number (required) - Default rate
+//   - previousBalance: number (optional) - Initial balance
+//   - createdAt: timestamp (required)
+//
+// Collection: entries
+// Document ID: auto-generated
+// Fields:
+//   - writerId: string (required) - Ref to writers
+//   - date: string (required) - ISO date YYYY-MM-DD
+//   - deedCount: number (required) - Number of deeds
+//   - rate: number (required) - Applied rate
+//   - totalAmount: number (required) - deedCount * rate
+//   - createdAt: timestamp (required)
+//
+// Collection: payments
+// Document ID: auto-generated
+// Fields:
+//   - writerId: string (required) - Ref to writers
+//   - date: string (required) - ISO date YYYY-MM-DD
+//   - amount: number (required) - Payment amount
+//   - note: string (optional) - Note
+//   - createdAt: timestamp (required)
+//
+// Collection: settings
+// Document ID: global
+// Fields:
+//   - adminEmail: string (required) - Authorized admin email
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             (request.auth.token.email == "bondhuk27@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function isValidWriter(data) {
+      return data.keys().hasAll(['name', 'rate', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.rate is number && data.rate >= 0 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidEntry(data) {
+      return data.keys().hasAll(['writerId', 'serviceType', 'date', 'deedCount', 'rate', 'totalAmount', 'createdAt']) &&
+             data.writerId is string &&
+             data.serviceType is string &&
+             (!('description' in data) || data.description is string) &&
+             (!('serviceCost' in data) || data.serviceCost is number) &&
+             data.date is string && data.date.matches("^\\d{4}-\\d{2}-\\d{2}$") &&
+             data.deedCount is number && data.deedCount >= 0 &&
+             data.rate is number && data.rate >= 0 &&
+             data.totalAmount is number &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidServiceConfig(data) {
+      return data.keys().hasAll(['name', 'defaultCost']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.defaultCost is number && data.defaultCost >= 0;
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll(['writerId', 'date', 'amount', 'createdAt']) &&
+             data.writerId is string &&
+             data.date is string && data.date.matches("^\\d{4}-\\d{2}-\\d{2}$") &&
+             data.amount is number && data.amount >= 0 &&
+             data.createdAt is timestamp;
+    }
+
+    // Rules
+    match /writers/{writerId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /entries/{entryId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /payments/{paymentId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /serviceConfigs/{configId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

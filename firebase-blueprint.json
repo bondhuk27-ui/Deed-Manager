@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Writer": {
+      "title": "Writer",
+      "description": "A deed writer who performs typing tasks.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Full name of the writer" },
+        "rate": { "type": "number", "description": "Default rate per deed for this writer" },
+        "previousBalance": { "type": "number", "description": "Initial balance or carried forward balance" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "rate"]
+    },
+    "DeedEntry": {
+      "title": "Deed Entry",
+      "description": "Daily record of deeds or other services performed by a writer.",
+      "type": "object",
+      "properties": {
+        "writerId": { "type": "string", "description": "Reference to the writer" },
+        "serviceType": { "type": "string", "description": "Type of service (e.g., Deed, Porcha, etc.)" },
+        "description": { "type": "string", "description": "Optional description for the service" },
+        "date": { "type": "string", "format": "date", "description": "Date of entry" },
+        "deedCount": { "type": "number", "description": "Number of units (deeds/applications)" },
+        "rate": { "type": "number", "description": "Rate applied for this entry" },
+        "serviceCost": { "type": "number", "description": "User's own cost per unit (e.g., govt fee)" },
+        "totalAmount": { "type": "number", "description": "deedCount * rate" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["writerId", "serviceType", "date", "deedCount", "rate", "totalAmount"]
+    },
+    "ServiceConfig": {
+      "title": "Service Config",
+      "description": "Configuration for a service type, including default costs.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the service (e.g., অনলাইন পর্চা)" },
+        "defaultCost": { "type": "number", "description": "Default cost per unit for this service" }
+      },
+      "required": ["name", "defaultCost"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Payment made to a writer.",
+      "type": "object",
+      "properties": {
+        "writerId": { "type": "string", "description": "Reference to the writer" },
+        "date": { "type": "string", "format": "date", "description": "Date of payment" },
+        "amount": { "type": "number", "description": "Amount paid" },
+        "note": { "type": "string", "description": "Optional note" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["writerId", "date", "amount"]
+    },
+    "AppSetting": {
+      "title": "App Setting",
+      "description": "Global application settings.",
+      "type": "object",
+      "properties": {
+        "adminEmail": { "type": "string", "description": "Email of the authorized admin" }
+      }
+    }
+  },
+  "firestore": {
+    "/writers/{writerId}": {
+      "schema": "Writer",
+      "description": "Collection of writers"
+    },
+    "/entries/{entryId}": {
+      "schema": "DeedEntry",
+      "description": "Collection of daily deed entries"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Collection of payments to writers"
+    },
+    "/settings/global": {
+      "schema": "AppSetting",
+      "description": "Global app configuration"
+    }
+  }
+}
