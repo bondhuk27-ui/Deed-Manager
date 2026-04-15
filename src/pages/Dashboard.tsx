@@ -399,36 +399,38 @@ const Dashboard = () => {
               </Button>
             </div>
           </DialogHeader>
-          <div className="p-8" ref={reportRef}>
-            {modalEntries.length === 0 ? (
-              <div className="py-12 text-center bg-white">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="text-slate-300" size={32} />
-                </div>
-                <p className="text-slate-400 font-bold">এই তারিখে কোনো কাজ পাওয়া যায়নি</p>
-              </div>
-            ) : (
-              <div className="space-y-4 bg-white">
-                {modalEntries.map((entry) => (
-                  <div key={entry.id} className="entry-item flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="entry-info flex flex-col">
-                      <span className="entry-type font-black text-slate-700">{entry.serviceType}</span>
-                      <span className="entry-meta text-[10px] font-bold text-slate-400 uppercase tracking-widest">{entry.deedCount} টি × {entry.rate} ৳</span>
-                      {entry.description && <span className="entry-meta text-[10px] text-slate-400 italic mt-1">{entry.description}</span>}
-                    </div>
-                    <div className="text-right">
-                      <span className="entry-amount text-lg font-black text-indigo-600">{entry.totalAmount} ৳</span>
-                    </div>
+          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="p-8" ref={reportRef}>
+              {modalEntries.length === 0 ? (
+                <div className="py-12 text-center bg-white">
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FileText className="text-slate-300" size={32} />
                   </div>
-                ))}
-                <div className="total-section pt-4 border-t border-slate-100 flex justify-between items-center bg-white">
-                  <span className="text-sm font-black text-slate-400 uppercase tracking-widest">মোট:</span>
-                  <span className="text-2xl font-black text-slate-800">
-                    {modalEntries.reduce((sum, e) => sum + e.totalAmount, 0)} ৳
-                  </span>
+                  <p className="text-slate-400 font-bold">এই তারিখে কোনো কাজ পাওয়া যায়নি</p>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-4 bg-white">
+                  {modalEntries.map((entry) => (
+                    <div key={entry.id} className="entry-item flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div className="entry-info flex flex-col">
+                        <span className="entry-type font-black text-slate-700">{entry.serviceType}</span>
+                        <span className="entry-meta text-[10px] font-bold text-slate-400 uppercase tracking-widest">{entry.deedCount} টি × {entry.rate} ৳</span>
+                        {entry.description && <span className="entry-meta text-[10px] text-slate-400 italic mt-1">{entry.description}</span>}
+                      </div>
+                      <div className="text-right">
+                        <span className="entry-amount text-lg font-black text-indigo-600">{entry.totalAmount} ৳</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="total-section pt-4 border-t border-slate-100 flex justify-between items-center bg-white">
+                    <span className="text-sm font-black text-slate-400 uppercase tracking-widest">মোট:</span>
+                    <span className="text-2xl font-black text-slate-800">
+                      {modalEntries.reduce((sum, e) => sum + e.totalAmount, 0)} ৳
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
             <Button 
