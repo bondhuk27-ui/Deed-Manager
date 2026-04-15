@@ -55,7 +55,7 @@ const Reports = () => {
 
   const totalEarned = filteredEntries.reduce((sum, e) => sum + e.totalAmount, 0);
   const totalPaid = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
-  const totalServiceCosts = filteredEntries.reduce((sum, e) => sum + ((e.serviceCost || 0) * e.deedCount), 0);
+  const totalServiceCosts = filteredEntries.reduce((sum, e) => sum + (e.serviceCost || 0), 0);
   const netIncome = totalEarned - totalServiceCosts;
   
   // Calculate service-wise counts
