@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged } from '../firebase';
+import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged } from '../firebase';
 import { User } from 'firebase/auth';
 
 interface AuthContextType {
@@ -7,6 +7,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   login: () => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -16,7 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const ADMIN_EMAIL = "bondhuk27@gmail.com";
+  const ADMIN_EMAILS = ["bondhuk27@gmail.com", "mgsadar@gmail.com"];
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -31,6 +32,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Login failed", error);
+      throw error;
+    }
+  };
+
+  const loginWithEmail = async (email: string, pass: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      console.error("Email login failed", error);
+      throw error;
     }
   };
 
@@ -42,10 +53,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const isAdmin = user?.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
+
+  useEffect(() => {
+    if (user) {
+      console.log("Current User Email:", user.email);
+      console.log("Is Admin:", isAdmin);
+      console.log("Admin List:", ADMIN_EMAILS);
+    }
+  }, [user, isAdmin]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, login, loginWithEmail, logout }}>
       {children}
     </AuthContext.Provider>
   );

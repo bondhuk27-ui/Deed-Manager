@@ -42,13 +42,19 @@ const Entries = () => {
   ];
 
   useEffect(() => {
-    const writersUnsubscribe = onSnapshot(collection(db, 'writers'), (snapshot) => {
-      setWriters(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Writer[]);
-    });
+    const writersUnsubscribe = onSnapshot(collection(db, 'writers'), 
+      (snapshot) => {
+        setWriters(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Writer[]);
+      },
+      (error) => console.error("Writers Snapshot Error:", error)
+    );
 
-    const configsUnsubscribe = onSnapshot(collection(db, 'serviceConfigs'), (snapshot) => {
-      setServiceConfigs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceConfig[]);
-    });
+    const configsUnsubscribe = onSnapshot(collection(db, 'serviceConfigs'), 
+      (snapshot) => {
+        setServiceConfigs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceConfig[]);
+      },
+      (error) => console.error("Configs Snapshot Error:", error)
+    );
 
     const entriesQuery = query(collection(db, 'entries'), orderBy('date', 'desc'), orderBy('createdAt', 'desc'));
     const entriesUnsubscribe = onSnapshot(entriesQuery, (snapshot) => {

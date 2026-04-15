@@ -27,9 +27,12 @@ const Payments = () => {
   });
 
   useEffect(() => {
-    const writersUnsubscribe = onSnapshot(collection(db, 'writers'), (snapshot) => {
-      setWriters(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Writer[]);
-    });
+    const writersUnsubscribe = onSnapshot(collection(db, 'writers'), 
+      (snapshot) => {
+        setWriters(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Writer[]);
+      },
+      (error) => console.error("Writers Snapshot Error:", error)
+    );
 
     const paymentsQuery = query(collection(db, 'payments'), orderBy('date', 'desc'), orderBy('createdAt', 'desc'));
     const paymentsUnsubscribe = onSnapshot(paymentsQuery, (snapshot) => {

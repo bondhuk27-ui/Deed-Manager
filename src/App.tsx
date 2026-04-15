@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 
+import { LogIn } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 // Lazy load components
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Writers = React.lazy(() => import('./pages/Writers'));
@@ -11,9 +14,10 @@ const Payments = React.lazy(() => import('./pages/Payments'));
 const Reports = React.lazy(() => import('./pages/Reports'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const Login = React.lazy(() => import('./pages/Login'));
+const Income = React.lazy(() => import('./pages/Income'));
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, logout } = useAuth();
 
   if (loading) {
     return (
@@ -29,17 +33,28 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
-          <p className="text-muted-foreground">Only authorized admins can access this application.</p>
-          <p className="text-sm">Logged in as: {user.email}</p>
-          <button 
-            onClick={() => window.location.href = '/login'}
-            className="text-primary hover:underline"
-          >
-            Switch Account
-          </button>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+        <div className="max-w-md w-full bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 text-center space-y-6 border border-slate-100">
+          <div className="mx-auto w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500">
+            <LogIn size={32} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-slate-800">অ্যাক্সেস ডিনাইড!</h1>
+            <p className="text-slate-500 text-sm font-medium">আপনার ইমেইলটি এডমিন হিসেবে অনুমোদিত নয়।</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">লগইন করা ইমেইল:</p>
+            <p className="text-sm font-bold text-slate-700">{user.email}</p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button 
+              onClick={() => logout()}
+              className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold"
+            >
+              অন্য অ্যাকাউন্টে লগইন করুন
+            </Button>
+            <p className="text-[10px] text-slate-400 font-medium">সঠিক ইমেইল দিয়ে লগইন করতে এডমিনের সাথে যোগাযোগ করুন।</p>
+          </div>
         </div>
       </div>
     );
@@ -61,6 +76,7 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/income" element={<ProtectedRoute><Income /></ProtectedRoute>} />
               <Route path="/writers" element={<ProtectedRoute><Writers /></ProtectedRoute>} />
               <Route path="/entries" element={<ProtectedRoute><Entries /></ProtectedRoute>} />
               <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />

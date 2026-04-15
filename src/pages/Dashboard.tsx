@@ -24,9 +24,18 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubWriters = onSnapshot(collection(db, 'writers'), (s) => setWriters(s.docs.map(d => ({id: d.id, ...d.data()})) as Writer[]));
-    const unsubEntries = onSnapshot(collection(db, 'entries'), (s) => setEntries(s.docs.map(d => ({id: d.id, ...d.data()})) as DeedEntry[]));
-    const unsubPayments = onSnapshot(collection(db, 'payments'), (s) => setPayments(s.docs.map(d => ({id: d.id, ...d.data()})) as Payment[]));
+    const unsubWriters = onSnapshot(collection(db, 'writers'), 
+      (s) => setWriters(s.docs.map(d => ({id: d.id, ...d.data()})) as Writer[]),
+      (err) => console.error("Writers Snapshot Error:", err)
+    );
+    const unsubEntries = onSnapshot(collection(db, 'entries'), 
+      (s) => setEntries(s.docs.map(d => ({id: d.id, ...d.data()})) as DeedEntry[]),
+      (err) => console.error("Entries Snapshot Error:", err)
+    );
+    const unsubPayments = onSnapshot(collection(db, 'payments'), 
+      (s) => setPayments(s.docs.map(d => ({id: d.id, ...d.data()})) as Payment[]),
+      (err) => console.error("Payments Snapshot Error:", err)
+    );
     
     setLoading(false);
     return () => { unsubWriters(); unsubEntries(); unsubPayments(); };
