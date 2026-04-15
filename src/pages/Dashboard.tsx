@@ -17,11 +17,14 @@ import {
   X,
   Clock,
   Share2,
-  MessageCircle
+  MessageCircle,
+  Printer
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 import { toast } from 'sonner';
@@ -32,9 +35,10 @@ const Dashboard = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTodayOnly, setShowTodayOnly] = useState(false);
-  const [selectedWriterDetails, setSelectedWriterDetails] = useState<{ writerName: string, entries: DeedEntry[] } | null>(null);
+  const [selectedWriterDetails, setSelectedWriterDetails] = useState<{ writerId: string, writerName: string } | null>(null);
+  const [modalDate, setModalDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const reportRef = useRef<HTMLDivElement>(null);
-  const [isSharing, setIsSharing] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const todayStr = format(new Date(), 'yyyy-MM-dd');
 
@@ -90,56 +94,53 @@ const Dashboard = () => {
   });
 
   const handleWriterClick = (writerId: string, writerName: string) => {
-    const todayEntries = entries.filter(e => e.writerId === writerId && e.date === todayStr);
-    setSelectedWriterDetails({ writerName, entries: todayEntries });
+    setModalDate(todayStr);
+    setSelectedWriterDetails({ writerId, writerName });
   };
 
-  const handleShareWhatsApp = async () => {
-    if (!reportRef.current || !selectedWriterDetails) return;
+  const modalEntries = selectedWriterDetails 
+    ? entries.filter(e => e.writerId === selectedWriterDetails.writerId && e.date === modalDate)
+    : [];
+
+  const handlePrintModal = () => {
+    if (!reportRef.current) return;
     
-    setIsSharing(true);
-    toast.loading("ইমেজ তৈরি হচ্ছে...");
+    const printContent = reportRef.current.innerHTML;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
 
-    try {
-      const canvas = await html2canvas(reportRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        logging: false,
-        useCORS: true
-      });
-
-      const dataUrl = canvas.toDataURL('image/png');
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `report_${selectedWriterDetails.writerName}_${todayStr}.png`, { type: 'image/png' });
-
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Daily Report',
-          text: `${selectedWriterDetails.writerName} - আজকের কাজের রিপোর্ট (${todayStr})`
-        });
-        toast.dismiss();
-        toast.success("শেয়ার অপশন ওপেন হয়েছে");
-      } else {
-        // Fallback: Download and open WhatsApp
-        const link = document.createElement('a');
-        link.download = `report_${selectedWriterDetails.writerName}_${todayStr}.png`;
-        link.href = dataUrl;
-        link.click();
-        
-        const text = `*${selectedWriterDetails.writerName} - আজকের কাজের রিপোর্ট*\nতারিখ: ${todayStr}\n\nইমেজটি ডাউনলোড হয়েছে, দয়া করে হোয়াটসঅ্যাপে অ্যাটাচ করে পাঠিয়ে দিন।`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-        
-        toast.dismiss();
-        toast.info("ইমেজটি ডাউনলোড হয়েছে, এখন হোয়াটসঅ্যাপে সেন্ড করুন");
-      }
-    } catch (error) {
-      console.error("Sharing error:", error);
-      toast.dismiss();
-      toast.error("শেয়ার করতে সমস্যা হয়েছে");
-    } finally {
-      setIsSharing(false);
-    }
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Report - ${selectedWriterDetails?.writerName}</title>
+          <style>
+            body { font-family: sans-serif; padding: 40px; }
+            .report-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            .entry-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #eee; }
+            .entry-info { display: flex; flex-direction: column; }
+            .entry-type { font-weight: bold; font-size: 16px; }
+            .entry-meta { font-size: 12px; color: #666; margin-top: 4px; }
+            .entry-amount { font-weight: bold; font-size: 18px; }
+            .total-section { margin-top: 20px; display: flex; justify-content: space-between; font-weight: bold; font-size: 20px; border-top: 2px solid #eee; pt: 10px; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="report-header">
+            <h1>${selectedWriterDetails?.writerName}</h1>
+            <p>তারিখ: ${modalDate}</p>
+          </div>
+          ${printContent}
+          <script>
+            setTimeout(() => {
+              window.print();
+              window.close();
+            }, 500);
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const totalEarnedAll = summaries.reduce((sum, s) => sum + s.totalEarned, 0);
@@ -377,7 +378,15 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <DialogTitle className="text-2xl font-black tracking-tight">{selectedWriterDetails?.writerName}</DialogTitle>
-                  <p className="text-indigo-100 text-xs font-bold">আজকের কাজের বিবরণ ({todayStr})</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Label className="text-[10px] font-bold text-indigo-100 uppercase">তারিখ নির্বাচন:</Label>
+                    <Input 
+                      type="date" 
+                      value={modalDate} 
+                      onChange={(e) => setModalDate(e.target.value)}
+                      className="h-7 w-32 bg-white/10 border-white/20 text-white text-[10px] rounded-lg focus:ring-0 py-0"
+                    />
+                  </div>
                 </div>
               </div>
               <Button 
@@ -391,31 +400,31 @@ const Dashboard = () => {
             </div>
           </DialogHeader>
           <div className="p-8" ref={reportRef}>
-            {selectedWriterDetails?.entries.length === 0 ? (
+            {modalEntries.length === 0 ? (
               <div className="py-12 text-center bg-white">
                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FileText className="text-slate-300" size={32} />
                 </div>
-                <p className="text-slate-400 font-bold">আজ কোনো কাজ এন্ট্রি করা হয়নি</p>
+                <p className="text-slate-400 font-bold">এই তারিখে কোনো কাজ পাওয়া যায়নি</p>
               </div>
             ) : (
               <div className="space-y-4 bg-white">
-                {selectedWriterDetails?.entries.map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="flex flex-col">
-                      <span className="font-black text-slate-700">{entry.serviceType}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{entry.deedCount} টি × {entry.rate} ৳</span>
-                      {entry.description && <span className="text-[10px] text-slate-400 italic mt-1">{entry.description}</span>}
+                {modalEntries.map((entry) => (
+                  <div key={entry.id} className="entry-item flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="entry-info flex flex-col">
+                      <span className="entry-type font-black text-slate-700">{entry.serviceType}</span>
+                      <span className="entry-meta text-[10px] font-bold text-slate-400 uppercase tracking-widest">{entry.deedCount} টি × {entry.rate} ৳</span>
+                      {entry.description && <span className="entry-meta text-[10px] text-slate-400 italic mt-1">{entry.description}</span>}
                     </div>
                     <div className="text-right">
-                      <span className="text-lg font-black text-indigo-600">{entry.totalAmount} ৳</span>
+                      <span className="entry-amount text-lg font-black text-indigo-600">{entry.totalAmount} ৳</span>
                     </div>
                   </div>
                 ))}
-                <div className="pt-4 border-t border-slate-100 flex justify-between items-center bg-white">
-                  <span className="text-sm font-black text-slate-400 uppercase tracking-widest">আজকের মোট:</span>
+                <div className="total-section pt-4 border-t border-slate-100 flex justify-between items-center bg-white">
+                  <span className="text-sm font-black text-slate-400 uppercase tracking-widest">মোট:</span>
                   <span className="text-2xl font-black text-slate-800">
-                    {selectedWriterDetails?.entries.reduce((sum, e) => sum + e.totalAmount, 0)} ৳
+                    {modalEntries.reduce((sum, e) => sum + e.totalAmount, 0)} ৳
                   </span>
                 </div>
               </div>
@@ -423,12 +432,12 @@ const Dashboard = () => {
           </div>
           <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
             <Button 
-              onClick={handleShareWhatsApp} 
-              disabled={isSharing || selectedWriterDetails?.entries.length === 0}
-              className="flex-1 h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 shadow-lg shadow-emerald-200 transition-all"
+              onClick={handlePrintModal} 
+              disabled={modalEntries.length === 0}
+              className="flex-1 h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2 shadow-lg shadow-indigo-200 transition-all"
             >
-              <MessageCircle size={20} />
-              WhatsApp এ পাঠান (Image)
+              <Printer size={20} />
+              রিপোর্ট প্রিন্ট করুন
             </Button>
           </div>
         </DialogContent>
