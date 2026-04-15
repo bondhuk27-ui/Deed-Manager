@@ -45,14 +45,45 @@
   body {
     background: white !important;
     padding: 0 !important;
+    margin: 0 !important;
+    color: black !important;
   }
   main {
     padding: 0 !important;
+    margin: 0 !important;
     max-width: none !important;
   }
   .card {
     box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    border-radius: 0 !important;
+    margin-bottom: 20px !important;
+    break-inside: avoid;
+  }
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  th, td {
+    border: 1px solid #ddd !important;
+    padding: 8px !important;
+    color: black !important;
+  }
+  th {
+    background-color: #f9f9f9 !important;
+    -webkit-print-color-adjust: exact;
+  }
+  .animated-gradient-text {
+    background: none !important;
+    color: black !important;
+    -webkit-text-fill-color: black !important;
+  }
+  .bg-indigo-50, .bg-emerald-50, .bg-rose-50, .bg-violet-50, .bg-slate-50 {
+    background-color: transparent !important;
     border: 1px solid #eee !important;
+  }
+  .text-indigo-600, .text-emerald-600, .text-rose-600, .text-violet-600 {
+    color: black !important;
   }
 }
 @import "tw-animate-css";

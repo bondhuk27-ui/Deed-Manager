@@ -82,11 +82,21 @@ const Reports = () => {
           <h2 className="text-4xl font-black tracking-tight animated-gradient-text">রিপোর্ট ও বিশ্লেষণ</h2>
           <p className="text-slate-500 font-medium mt-1">বিস্তারিত লেনদেন এবং কাজের রিপোর্ট দেখুন।</p>
         </div>
-        <Button variant="outline" onClick={handlePrint} className="h-12 px-6 rounded-2xl gap-2 font-bold border-slate-200 hover:bg-slate-50 transition-all duration-300">
+        <Button variant="outline" onClick={handlePrint} className="h-12 px-6 rounded-2xl gap-2 font-bold border-slate-200 hover:bg-slate-50 transition-all duration-300 print:hidden">
           <Printer size={18} />
           প্রিন্ট করুন
         </Button>
       </motion.div>
+
+      {/* Print Only Header */}
+      <div className="hidden print:block mb-8 border-b-2 border-slate-800 pb-4">
+        <h1 className="text-3xl font-bold text-center mb-2">দলিল লেখক হিসাব রিপোর্ট</h1>
+        <div className="flex justify-between text-sm font-bold">
+          <p>লেখক: {selectedWriter === 'all' ? "সব লেখক" : writers.find(w => w.id === selectedWriter)?.name}</p>
+          <p>সময়কাল: {startDate} থেকে {endDate}</p>
+        </div>
+        <p className="text-[10px] text-right mt-2">রিপোর্ট তৈরির সময়: {format(new Date(), 'dd/MM/yyyy hh:mm a')}</p>
+      </div>
 
       {/* Filters */}
       <motion.div
