@@ -72,11 +72,22 @@ const Entries = () => {
 
   const handleServiceTypeChange = (type: string) => {
     const config = serviceConfigs.find(c => c.name === type);
+    const count = Number(formData.deedCount) || 0;
     setFormData({
       ...formData,
       serviceType: type,
-      serviceCost: config ? config.defaultCost.toString() : '',
+      serviceCost: config ? (config.defaultCost * count).toString() : '',
       rate: config && config.defaultRate ? config.defaultRate.toString() : formData.rate
+    });
+  };
+
+  const handleCountChange = (countStr: string) => {
+    const count = Number(countStr) || 0;
+    const config = serviceConfigs.find(c => c.name === formData.serviceType);
+    setFormData({
+      ...formData,
+      deedCount: countStr,
+      serviceCost: config ? (config.defaultCost * count).toString() : formData.serviceCost
     });
   };
 
@@ -228,7 +239,7 @@ const Entries = () => {
                     <Input 
                       type="number" 
                       value={formData.deedCount} 
-                      onChange={e => setFormData({...formData, deedCount: e.target.value})} 
+                      onChange={e => handleCountChange(e.target.value)} 
                       placeholder="যেমন: ৫"
                       className="h-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-indigo-500"
                     />

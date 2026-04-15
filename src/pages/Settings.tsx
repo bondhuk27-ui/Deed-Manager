@@ -56,7 +56,8 @@ const SortableRow = ({ config, handleUpdateCost, handleUpdateRate, handleDeleteC
   config: ServiceConfig, 
   handleUpdateCost: (id: string, cost: number) => void,
   handleUpdateRate: (id: string, rate: number) => void,
-  handleDeleteClick: (id: string) => void
+  handleDeleteClick: (id: string) => void,
+  key?: string
 }) => {
   const {
     attributes,
@@ -292,6 +293,7 @@ const Settings = () => {
                     >
                       {configs.map((config: ServiceConfig) => (
                         <SortableRow 
+                          key={config.id} 
                           config={config} 
                           handleUpdateCost={handleUpdateCost}
                           handleUpdateRate={handleUpdateRate}
