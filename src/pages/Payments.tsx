@@ -108,7 +108,9 @@ const Payments = () => {
                 <Label>লেখক নির্বাচন করুন</Label>
                 <Select onValueChange={id => setFormData({...formData, writerId: id})} value={formData.writerId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="লেখক বেছে নিন" />
+                    <SelectValue>
+                      {formData.writerId ? writers.find(w => w.id === formData.writerId)?.name : "লেখক বেছে নিন"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {writers.map(w => (

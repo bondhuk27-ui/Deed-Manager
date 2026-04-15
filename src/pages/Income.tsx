@@ -51,7 +51,7 @@ const Income = () => {
         const date = new Date(e.date);
         return isWithinInterval(date, { start, end });
       })
-      .reduce((sum, e) => sum + e.totalAmount, 0);
+      .reduce((sum, e) => sum + (e.totalAmount - (e.serviceCost || 0)), 0);
   };
 
   const now = new Date();
@@ -106,7 +106,7 @@ const Income = () => {
         animate={{ opacity: 1, y: 0 }}
       >
         <h2 className="text-4xl font-black tracking-tight animated-gradient-text">আয়ের বিস্তারিত হিসাব</h2>
-        <p className="text-slate-500 font-medium mt-1">আজকের, সাপ্তাহিক, মাসিক এবং বাৎসরিক আয়ের বিবরনী এখানে দেখুন।</p>
+        <p className="text-slate-500 font-medium mt-1">নিজস্ব খরচ বাদ দিয়ে আজকের, সাপ্তাহিক, মাসিক এবং বাৎসরিক নিট আয়ের বিবরনী এখানে দেখুন।</p>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -158,7 +158,9 @@ const Income = () => {
                     <tr className="bg-slate-50/50">
                       <th className="px-8 py-5 font-bold text-slate-400 uppercase tracking-widest text-[10px]">তারিখ</th>
                       <th className="px-4 py-5 font-bold text-slate-400 uppercase tracking-widest text-[10px]">বিবরণ</th>
-                      <th className="px-8 py-5 text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">পরিমাণ</th>
+                      <th className="px-4 py-5 text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">মোট</th>
+                      <th className="px-4 py-5 text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">খরচ</th>
+                      <th className="px-8 py-5 text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">নিট আয়</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -173,7 +175,9 @@ const Income = () => {
                             {e.description && <span className="text-[10px] text-slate-400 italic">{e.description}</span>}
                           </div>
                         </td>
-                        <td className="px-8 py-5 text-right font-black text-indigo-600">{e.totalAmount} ৳</td>
+                        <td className="px-4 py-5 text-right text-slate-500 text-xs">{e.totalAmount} ৳</td>
+                        <td className="px-4 py-5 text-right text-rose-500 text-xs">{e.serviceCost || 0} ৳</td>
+                        <td className="px-8 py-5 text-right font-black text-emerald-600">{e.totalAmount - (e.serviceCost || 0)} ৳</td>
                       </tr>
                     ))}
                     {entries.length === 0 && (
@@ -209,7 +213,7 @@ const Income = () => {
                 <div className="p-6 bg-white/10 backdrop-blur-sm rounded-3xl border border-white/10">
                   <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">গড় আয় (প্রতি এন্ট্রি)</p>
                   <p className="text-3xl font-black">
-                    {entries.length > 0 ? Math.round(entries.reduce((s, e) => s + e.totalAmount, 0) / entries.length) : 0} ৳
+                    {entries.length > 0 ? Math.round(entries.reduce((s, e) => s + (e.totalAmount - (e.serviceCost || 0)), 0) / entries.length) : 0} ৳
                   </p>
                 </div>
               </div>

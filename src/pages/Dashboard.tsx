@@ -71,7 +71,7 @@ const Dashboard = () => {
 
   const stats = [
     { label: 'মোট লেখক', value: writers.length, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', shadow: 'shadow-indigo-500/10' },
-    { label: 'মোট আয় (কাজ)', value: `${totalEarnedAll} ৳`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', shadow: 'shadow-emerald-500/10' },
+    { label: 'মোট কাজের টাকা', value: `${totalEarnedAll} ৳`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', shadow: 'shadow-emerald-500/10' },
     { label: 'মোট পরিশোধ', value: `${totalPaidAll} ৳`, icon: Wallet, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100', shadow: 'shadow-violet-500/10' },
     { label: 'মোট বকেয়া', value: `${totalBalanceAll} ৳`, icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', shadow: 'shadow-amber-500/10' },
   ];
