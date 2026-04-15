@@ -25,6 +25,8 @@ export interface ServiceConfig {
   id: string;
   name: string;
   defaultCost: number;
+  defaultRate?: number;
+  order?: number;
 }
 
 export interface Payment {

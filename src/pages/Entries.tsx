@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db, collection, addDoc, onSnapshot, query, orderBy, Timestamp, deleteDoc, doc, where } from '@/src/firebase';
+import { db, collection, addDoc, onSnapshot, query, orderBy, Timestamp, deleteDoc, doc, where, writeBatch } from '@/src/firebase';
 import { Writer, DeedEntry, ServiceConfig } from '@/src/types';
 import { handleFirestoreError, OperationType } from '@/src/lib/firestore-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,23 +23,13 @@ const Entries = () => {
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     writerId: '',
-    serviceType: 'দলিল',
+    serviceType: '',
     description: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     deedCount: '',
     rate: '',
     serviceCost: ''
   });
-
-  const serviceTypes = [
-    'দলিল',
-    'অনলাইন পর্চা',
-    'নকল প্রিন্ট',
-    'নামজারির আবেদন',
-    'ডিসিআর পেমেন্ট',
-    'এনআইডি ভেরিফাই',
-    'অন্যান্য'
-  ];
 
   useEffect(() => {
     const writersUnsubscribe = onSnapshot(collection(db, 'writers'), 
@@ -49,7 +39,7 @@ const Entries = () => {
       (error) => console.error("Writers Snapshot Error:", error)
     );
 
-    const configsUnsubscribe = onSnapshot(collection(db, 'serviceConfigs'), 
+    const configsUnsubscribe = onSnapshot(query(collection(db, 'serviceConfigs'), orderBy('order', 'asc')), 
       (snapshot) => {
         setServiceConfigs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceConfig[]);
       },
@@ -85,7 +75,8 @@ const Entries = () => {
     setFormData({
       ...formData,
       serviceType: type,
-      serviceCost: config ? config.defaultCost.toString() : ''
+      serviceCost: config ? config.defaultCost.toString() : '',
+      rate: config && config.defaultRate ? config.defaultRate.toString() : formData.rate
     });
   };
 
@@ -210,9 +201,13 @@ const Entries = () => {
                         <SelectValue placeholder="কাজের ধরন বেছে নিন" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
-                        {serviceTypes.map(type => (
-                          <SelectItem key={type} value={type} className="rounded-xl my-1">{type}</SelectItem>
-                        ))}
+                        {serviceConfigs.length === 0 ? (
+                          <div className="p-4 text-center text-xs text-slate-400 font-bold">সেটিংসে কাজের ধরন যোগ করুন</div>
+                        ) : (
+                          serviceConfigs.map(config => (
+                            <SelectItem key={config.id} value={config.name} className="rounded-xl my-1">{config.name}</SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
