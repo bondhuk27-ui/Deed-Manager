@@ -13,15 +13,30 @@ import {
   AlertCircle,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles
+  Sparkles,
+  X,
+  Clock,
+  Share2,
+  MessageCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import html2canvas from 'html2canvas';
+import { useRef } from 'react';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const [writers, setWriters] = useState<Writer[]>([]);
   const [entries, setEntries] = useState<DeedEntry[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
+  const [selectedWriterDetails, setSelectedWriterDetails] = useState<{ writerName: string, entries: DeedEntry[] } | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
 
   useEffect(() => {
     const unsubWriters = onSnapshot(collection(db, 'writers'), 
@@ -45,10 +60,25 @@ const Dashboard = () => {
     const writerEntries = entries.filter(e => e.writerId === writer.id);
     const writerPayments = payments.filter(p => p.writerId === writer.id);
     
-    const totalDeeds = writerEntries.reduce((sum, e) => sum + e.deedCount, 0);
-    const totalEarned = writerEntries.reduce((sum, e) => sum + e.totalAmount, 0);
-    const totalPaid = writerPayments.reduce((sum, p) => sum + p.amount, 0);
-    const currentBalance = (writer.previousBalance || 0) + totalEarned - totalPaid;
+    // Filter for today if toggled
+    const displayEntries = showTodayOnly 
+      ? writerEntries.filter(e => e.date === todayStr)
+      : writerEntries;
+    
+    const displayPayments = showTodayOnly
+      ? writerPayments.filter(p => p.date === todayStr)
+      : writerPayments;
+
+    const totalDeeds = displayEntries.reduce((sum, e) => sum + e.deedCount, 0);
+    const totalEarned = displayEntries.reduce((sum, e) => sum + e.totalAmount, 0);
+    const totalPaid = displayPayments.reduce((sum, p) => sum + p.amount, 0);
+    
+    // Balance is always total unless we specifically want "Today's Balance"
+    // But usually balance means cumulative. Let's keep cumulative balance 
+    // but show today's earned/paid if toggled.
+    const cumulativeEarned = writerEntries.reduce((sum, e) => sum + e.totalAmount, 0);
+    const cumulativePaid = writerPayments.reduce((sum, p) => sum + p.amount, 0);
+    const currentBalance = (writer.previousBalance || 0) + cumulativeEarned - cumulativePaid;
 
     return {
       writer,
@@ -58,6 +88,59 @@ const Dashboard = () => {
       currentBalance
     };
   });
+
+  const handleWriterClick = (writerId: string, writerName: string) => {
+    const todayEntries = entries.filter(e => e.writerId === writerId && e.date === todayStr);
+    setSelectedWriterDetails({ writerName, entries: todayEntries });
+  };
+
+  const handleShareWhatsApp = async () => {
+    if (!reportRef.current || !selectedWriterDetails) return;
+    
+    setIsSharing(true);
+    toast.loading("ইমেজ তৈরি হচ্ছে...");
+
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `report_${selectedWriterDetails.writerName}_${todayStr}.png`, { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Daily Report',
+          text: `${selectedWriterDetails.writerName} - আজকের কাজের রিপোর্ট (${todayStr})`
+        });
+        toast.dismiss();
+        toast.success("শেয়ার অপশন ওপেন হয়েছে");
+      } else {
+        // Fallback: Download and open WhatsApp
+        const link = document.createElement('a');
+        link.download = `report_${selectedWriterDetails.writerName}_${todayStr}.png`;
+        link.href = dataUrl;
+        link.click();
+        
+        const text = `*${selectedWriterDetails.writerName} - আজকের কাজের রিপোর্ট*\nতারিখ: ${todayStr}\n\nইমেজটি ডাউনলোড হয়েছে, দয়া করে হোয়াটসঅ্যাপে অ্যাটাচ করে পাঠিয়ে দিন।`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        
+        toast.dismiss();
+        toast.info("ইমেজটি ডাউনলোড হয়েছে, এখন হোয়াটসঅ্যাপে সেন্ড করুন");
+      }
+    } catch (error) {
+      console.error("Sharing error:", error);
+      toast.dismiss();
+      toast.error("শেয়ার করতে সমস্যা হয়েছে");
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   const totalEarnedAll = summaries.reduce((sum, s) => sum + s.totalEarned, 0);
   const totalPaidAll = summaries.reduce((sum, s) => sum + s.totalPaid, 0);
@@ -188,9 +271,26 @@ const Dashboard = () => {
       >
         <Card className="border-none shadow-2xl shadow-slate-200 rounded-[2rem] overflow-hidden bg-white">
           <CardHeader className="p-8 border-b border-slate-50">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <CardTitle className="text-2xl font-black text-slate-800">লেখক অনুযায়ী হিসাব</CardTitle>
-              <Button variant="outline" size="sm" className="rounded-xl font-bold text-xs border-slate-200">বিস্তারিত রিপোর্ট</Button>
+              <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+                <Button 
+                  variant={!showTodayOnly ? "secondary" : "ghost"} 
+                  size="sm" 
+                  onClick={() => setShowTodayOnly(false)}
+                  className={cn("rounded-lg font-bold text-[10px] uppercase tracking-wider h-8 px-4", !showTodayOnly && "bg-white shadow-sm")}
+                >
+                  সকল সময়
+                </Button>
+                <Button 
+                  variant={showTodayOnly ? "secondary" : "ghost"} 
+                  size="sm" 
+                  onClick={() => setShowTodayOnly(true)}
+                  className={cn("rounded-lg font-bold text-[10px] uppercase tracking-wider h-8 px-4", showTodayOnly && "bg-white shadow-sm")}
+                >
+                  আজকের
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -199,9 +299,9 @@ const Dashboard = () => {
                 <TableHeader>
                   <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
                     <TableHead className="px-8 py-5 font-bold text-slate-400 uppercase tracking-widest text-[10px]">লেখকের নাম</TableHead>
-                    <TableHead className="text-center font-bold text-slate-400 uppercase tracking-widest text-[10px]">মোট কাজ</TableHead>
-                    <TableHead className="text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">মোট পাওনা</TableHead>
-                    <TableHead className="text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">মোট পেমেন্ট</TableHead>
+                    <TableHead className="text-center font-bold text-slate-400 uppercase tracking-widest text-[10px]">{showTodayOnly ? "আজকের কাজ" : "মোট কাজ"}</TableHead>
+                    <TableHead className="text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">{showTodayOnly ? "আজকের পাওনা" : "মোট পাওনা"}</TableHead>
+                    <TableHead className="text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">{showTodayOnly ? "আজকের পেমেন্ট" : "মোট পেমেন্ট"}</TableHead>
                     <TableHead className="text-right px-8 font-bold text-slate-400 uppercase tracking-widest text-[10px]">বর্তমান বকেয়া</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -217,13 +317,20 @@ const Dashboard = () => {
                     <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400 font-bold">কোনো তথ্য পাওয়া যায়নি</TableCell></TableRow>
                   ) : (
                     summaries.map((s, idx) => (
-                      <TableRow key={s.writer.id} className="hover:bg-indigo-50/30 transition-colors border-slate-50">
+                      <TableRow 
+                        key={s.writer.id} 
+                        className="hover:bg-indigo-50/30 transition-colors border-slate-50 cursor-pointer group"
+                        onClick={() => handleWriterClick(s.writer.id, s.writer.name)}
+                      >
                         <TableCell className="px-8 py-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-black text-sm">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-black text-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                               {s.writer.name[0]}
                             </div>
-                            <span className="font-bold text-slate-700">{s.writer.name}</span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{s.writer.name}</span>
+                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">ক্লিক করে আজকের কাজ দেখুন</span>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
@@ -258,6 +365,74 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Writer Today's Details Modal */}
+      <Dialog open={!!selectedWriterDetails} onOpenChange={(open) => !open && setSelectedWriterDetails(null)}>
+        <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="p-8 bg-gradient-to-br from-indigo-600 to-violet-700 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <Clock size={24} />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black tracking-tight">{selectedWriterDetails?.writerName}</DialogTitle>
+                  <p className="text-indigo-100 text-xs font-bold">আজকের কাজের বিবরণ ({todayStr})</p>
+                </div>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setSelectedWriterDetails(null)}
+                className="rounded-xl hover:bg-white/10 text-white"
+              >
+                <X size={20} />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="p-8" ref={reportRef}>
+            {selectedWriterDetails?.entries.length === 0 ? (
+              <div className="py-12 text-center bg-white">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="text-slate-300" size={32} />
+                </div>
+                <p className="text-slate-400 font-bold">আজ কোনো কাজ এন্ট্রি করা হয়নি</p>
+              </div>
+            ) : (
+              <div className="space-y-4 bg-white">
+                {selectedWriterDetails?.entries.map((entry) => (
+                  <div key={entry.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="flex flex-col">
+                      <span className="font-black text-slate-700">{entry.serviceType}</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{entry.deedCount} টি × {entry.rate} ৳</span>
+                      {entry.description && <span className="text-[10px] text-slate-400 italic mt-1">{entry.description}</span>}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-black text-indigo-600">{entry.totalAmount} ৳</span>
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-4 border-t border-slate-100 flex justify-between items-center bg-white">
+                  <span className="text-sm font-black text-slate-400 uppercase tracking-widest">আজকের মোট:</span>
+                  <span className="text-2xl font-black text-slate-800">
+                    {selectedWriterDetails?.entries.reduce((sum, e) => sum + e.totalAmount, 0)} ৳
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+            <Button 
+              onClick={handleShareWhatsApp} 
+              disabled={isSharing || selectedWriterDetails?.entries.length === 0}
+              className="flex-1 h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 shadow-lg shadow-emerald-200 transition-all"
+            >
+              <MessageCircle size={20} />
+              WhatsApp এ পাঠান (Image)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
