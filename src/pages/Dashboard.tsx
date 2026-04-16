@@ -92,7 +92,7 @@ const Dashboard = () => {
       totalPaid,
       currentBalance
     };
-  });
+  }).sort((a, b) => b.totalDeeds - a.totalDeeds);
 
   const handleWriterClick = (writerId: string, writerName: string) => {
     setModalDate(todayStr);
