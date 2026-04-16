@@ -53,10 +53,10 @@ const Reports = () => {
     return writerMatch && dateMatch;
   }).sort((a, b) => b.date.localeCompare(a.date));
 
-  const totalEarned = filteredEntries.reduce((sum, e) => sum + e.totalAmount, 0);
-  const totalPaid = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
-  const totalServiceCosts = filteredEntries.reduce((sum, e) => sum + (e.serviceCost || 0), 0);
-  const netIncome = totalEarned - totalServiceCosts;
+  const totalEarned = +(filteredEntries.reduce((sum, e) => sum + e.totalAmount, 0)).toFixed(2);
+  const totalPaid = +(filteredPayments.reduce((sum, p) => sum + p.amount, 0)).toFixed(2);
+  const totalServiceCosts = +(filteredEntries.reduce((sum, e) => sum + (e.serviceCost || 0), 0)).toFixed(2);
+  const netIncome = +(totalEarned - totalServiceCosts).toFixed(2);
   
   // Calculate service-wise counts
   const serviceCounts = filteredEntries.reduce((acc, e) => {

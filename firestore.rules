@@ -36,6 +36,44 @@
 //
 // ===============================================================
 
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: writers
+// Document ID: auto-generated
+// Fields:
+//   - name: string (required) - Writer's name
+//   - rate: number (required) - Default rate
+//   - previousBalance: number (optional) - Initial balance
+//   - createdAt: timestamp (required)
+//
+// Collection: entries
+// Document ID: auto-generated
+// Fields:
+//   - writerId: string (required) - Ref to writers
+//   - date: string (required) - ISO date YYYY-MM-DD
+//   - deedCount: number (required) - Number of deeds
+//   - rate: number (required) - Applied rate
+//   - totalAmount: number (required) - deedCount * rate
+//   - createdAt: timestamp (required)
+//
+// Collection: payments
+// Document ID: auto-generated
+// Fields:
+//   - writerId: string (required) - Ref to writers
+//   - date: string (required) - ISO date YYYY-MM-DD
+//   - amount: number (required) - Payment amount
+//   - note: string (optional) - Note
+//   - createdAt: timestamp (required)
+//
+// Collection: settings
+// Document ID: global
+// Fields:
+//   - adminEmail: string (required) - Authorized admin email
+//
+// ===============================================================
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {

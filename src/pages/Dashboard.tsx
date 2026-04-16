@@ -144,9 +144,9 @@ const Dashboard = () => {
     printWindow.document.close();
   };
 
-  const totalEarnedAll = summaries.reduce((sum, s) => sum + s.totalEarned, 0);
-  const totalPaidAll = summaries.reduce((sum, s) => sum + s.totalPaid, 0);
-  const totalBalanceAll = summaries.reduce((sum, s) => sum + s.currentBalance, 0);
+    const totalEarnedAll = +summaries.reduce((sum, s) => sum + s.totalEarned, 0).toFixed(2);
+    const totalPaidAll = +summaries.reduce((sum, s) => sum + s.totalPaid, 0).toFixed(2);
+    const totalBalanceAll = +summaries.reduce((sum, s) => sum + s.currentBalance, 0).toFixed(2);
 
   const [lockedStats, setLockedStats] = useState<Record<number, boolean>>({});
 
@@ -368,15 +368,15 @@ const Dashboard = () => {
                             {s.totalDeeds} টি
                           </span>
                         </TableCell>
-                        <TableCell className="text-right font-bold text-slate-600">{s.totalEarned} ৳</TableCell>
-                        <TableCell className="text-right font-bold text-emerald-600">{s.totalPaid} ৳</TableCell>
+                        <TableCell className="text-right font-bold text-slate-600">{+s.totalEarned.toFixed(2)} ৳</TableCell>
+                        <TableCell className="text-right font-bold text-emerald-600">{+s.totalPaid.toFixed(2)} ৳</TableCell>
                         <TableCell className="text-right px-8">
                           <div className="flex flex-col items-end">
                             <span className={cn(
                               "font-black text-xl",
                               s.currentBalance > 0 ? "text-orange-500" : "text-emerald-500"
                             )}>
-                              {s.currentBalance} ৳
+                              {+s.currentBalance.toFixed(2)} ৳
                             </span>
                             <span className={cn(
                               "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md mt-1",
@@ -447,14 +447,14 @@ const Dashboard = () => {
                         {entry.description && <span className="entry-meta text-[10px] text-slate-400 italic mt-1">{entry.description}</span>}
                       </div>
                       <div className="text-right">
-                        <span className="entry-amount text-lg font-black text-indigo-600">{entry.totalAmount} ৳</span>
+                        <span className="entry-amount text-lg font-black text-indigo-600">{+entry.totalAmount.toFixed(2)} ৳</span>
                       </div>
                     </div>
                   ))}
                   <div className="total-section pt-4 border-t border-slate-100 flex justify-between items-center bg-white">
                     <span className="text-sm font-black text-slate-400 uppercase tracking-widest">মোট:</span>
                     <span className="text-2xl font-black text-slate-800">
-                      {modalEntries.reduce((sum, e) => sum + e.totalAmount, 0)} ৳
+                      {+modalEntries.reduce((sum, e) => sum + e.totalAmount, 0).toFixed(2)} ৳
                     </span>
                   </div>
                 </div>

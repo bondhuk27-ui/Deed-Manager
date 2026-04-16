@@ -47,12 +47,13 @@ const Income = () => {
   }, []);
 
   const calculateIncome = (start: Date, end: Date) => {
-    return entries
+    const amount = entries
       .filter(e => {
         const date = new Date(e.date);
         return isWithinInterval(date, { start, end });
       })
       .reduce((sum, e) => sum + (e.totalAmount - (e.serviceCost || 0)), 0);
+    return +amount.toFixed(2);
   };
 
   const now = new Date();
@@ -176,9 +177,9 @@ const Income = () => {
                             {e.description && <span className="text-[10px] text-slate-400 italic">{e.description}</span>}
                           </div>
                         </td>
-                        <td className="px-4 py-5 text-right text-slate-500 text-xs">{e.totalAmount} ৳</td>
-                        <td className="px-4 py-5 text-right text-rose-500 text-xs">{e.serviceCost || 0} ৳</td>
-                        <td className="px-8 py-5 text-right font-black text-emerald-600">{e.totalAmount - (e.serviceCost || 0)} ৳</td>
+                        <td className="px-4 py-5 text-right text-slate-500 text-xs">{+e.totalAmount.toFixed(2)} ৳</td>
+                        <td className="px-4 py-5 text-right text-rose-500 text-xs">{+(e.serviceCost || 0).toFixed(2)} ৳</td>
+                        <td className="px-8 py-5 text-right font-black text-emerald-600">{+(e.totalAmount - (e.serviceCost || 0)).toFixed(2)} ৳</td>
                       </tr>
                     ))}
                     {entries.length === 0 && !loading && (
@@ -223,7 +224,7 @@ const Income = () => {
                 <div className="p-6 bg-white/10 backdrop-blur-sm rounded-3xl border border-white/10">
                   <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">গড় আয় (প্রতি এন্ট্রি)</p>
                   <p className="text-3xl font-black">
-                    {entries.length > 0 ? Math.round(entries.reduce((s, e) => s + (e.totalAmount - (e.serviceCost || 0)), 0) / entries.length) : 0} ৳
+                    {entries.length > 0 ? +(entries.reduce((s, e) => s + (e.totalAmount - (e.serviceCost || 0)), 0) / entries.length).toFixed(2) : 0} ৳
                   </p>
                 </div>
               </div>

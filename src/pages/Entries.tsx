@@ -308,7 +308,7 @@ const Entries = () => {
                         <span className="text-sm font-black text-indigo-900 uppercase tracking-widest">মোট হিসাব:</span>
                       </div>
                       <span className="text-3xl font-black text-indigo-600">
-                        {Number(formData.deedCount) * Number(formData.rate)} ৳
+                        {+(Number(formData.deedCount) * Number(formData.rate)).toFixed(2)} ৳
                       </span>
                     </motion.div>
                   )}
@@ -376,9 +376,9 @@ const Entries = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex flex-col items-end">
-                              <span className="font-black text-slate-800">{entry.totalAmount} ৳</span>
-                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{entry.deedCount} × {entry.rate}</span>
-                              {entry.serviceCost ? <span className="text-[9px] font-black text-rose-500 uppercase tracking-tighter">খরচ: {entry.serviceCost} ৳</span> : null}
+                              <span className="font-black text-slate-800">{+entry.totalAmount.toFixed(2)} ৳</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{entry.deedCount} × {+entry.rate.toFixed(2)}</span>
+                              {entry.serviceCost ? <span className="text-[9px] font-black text-rose-500 uppercase tracking-tighter">খরচ: {+entry.serviceCost.toFixed(2)} ৳</span> : null}
                             </div>
                           </TableCell>
                           <TableCell className="text-right px-8">

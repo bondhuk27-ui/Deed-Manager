@@ -195,7 +195,7 @@ const Payments = () => {
                       <TableRow key={payment.id}>
                         <TableCell className="text-xs font-mono">{payment.date}</TableCell>
                         <TableCell className="font-medium">{getWriterName(payment.writerId)}</TableCell>
-                        <TableCell className="font-bold text-green-600">{payment.amount} ৳</TableCell>
+                        <TableCell className="font-bold text-green-600">{+payment.amount.toFixed(2)} ৳</TableCell>
                         <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">
                           {payment.note || '-'}
                         </TableCell>
