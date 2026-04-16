@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 // Lazy load components
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Writers = React.lazy(() => import('./pages/Writers'));
+const AssistantWriters = React.lazy(() => import('./pages/AssistantWriters'));
 const Entries = React.lazy(() => import('./pages/Entries'));
 const Payments = React.lazy(() => import('./pages/Payments'));
 const Reports = React.lazy(() => import('./pages/Reports'));
@@ -78,6 +79,7 @@ export default function App() {
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/income" element={<ProtectedRoute><Income /></ProtectedRoute>} />
               <Route path="/writers" element={<ProtectedRoute><Writers /></ProtectedRoute>} />
+              <Route path="/assistant-writers" element={<ProtectedRoute><AssistantWriters /></ProtectedRoute>} />
               <Route path="/entries" element={<ProtectedRoute><Entries /></ProtectedRoute>} />
               <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />

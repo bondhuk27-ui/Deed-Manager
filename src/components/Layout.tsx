@@ -27,6 +27,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Income', path: '/income', icon: BarChart3 },
     { label: 'Writers', path: '/writers', icon: Users },
+    { label: 'Assistant Writers', path: '/assistant-writers', icon: Users },
     { label: 'Daily Entry', path: '/entries', icon: FileEdit },
     { label: 'Payments', path: '/payments', icon: CreditCard },
     { label: 'Reports', path: '/reports', icon: BarChart3 },

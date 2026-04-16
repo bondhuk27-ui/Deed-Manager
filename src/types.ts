@@ -6,11 +6,13 @@ export interface Writer {
   rate: number;
   previousBalance: number;
   createdAt: Timestamp;
+  type?: 'main' | 'assistant';
 }
 
 export interface DeedEntry {
   id: string;
   writerId: string;
+  writerType?: 'main' | 'assistant';
   serviceType: string;
   description?: string;
   date: string; // YYYY-MM-DD
@@ -32,6 +34,7 @@ export interface ServiceConfig {
 export interface Payment {
   id: string;
   writerId: string;
+  writerType?: 'main' | 'assistant';
   date: string; // YYYY-MM-DD
   amount: number;
   note?: string;

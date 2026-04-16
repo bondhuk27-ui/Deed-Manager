@@ -19,6 +19,7 @@ const Payments = () => {
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState<string | null>(null);
+  const [writerType, setWriterType] = useState<'main' | 'assistant'>('main');
   const [formData, setFormData] = useState({
     writerId: '',
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -58,6 +59,7 @@ const Payments = () => {
     try {
       await addDoc(collection(db, 'payments'), {
         writerId: formData.writerId,
+        writerType: writerType,
         date: formData.date,
         amount: Number(formData.amount),
         note: formData.note,
@@ -105,6 +107,21 @@ const Payments = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
+                <Label>লেখকের ধরন</Label>
+                <Select onValueChange={(val: 'main' | 'assistant') => {
+                  setWriterType(val);
+                  setFormData({...formData, writerId: ''});
+                }} value={writerType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="ধরন বেছে নিন" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="main">প্রধান লেখক</SelectItem>
+                    <SelectItem value="assistant">সহকারী লেখক</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>লেখক নির্বাচন করুন</Label>
                 <Select onValueChange={id => setFormData({...formData, writerId: id})} value={formData.writerId}>
                   <SelectTrigger>
@@ -113,7 +130,7 @@ const Payments = () => {
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {writers.map(w => (
+                    {writers.filter(w => (w.type || 'main') === writerType).map(w => (
                       <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
                     ))}
                   </SelectContent>

@@ -21,6 +21,7 @@ const Entries = () => {
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+  const [writerType, setWriterType] = useState<'main' | 'assistant'>('main');
   const [formData, setFormData] = useState({
     writerId: '',
     serviceType: '',
@@ -106,6 +107,7 @@ const Entries = () => {
     try {
       await addDoc(collection(db, 'entries'), {
         writerId: formData.writerId,
+        writerType: writerType,
         serviceType: formData.serviceType,
         description: formData.description,
         date: formData.date,
@@ -177,6 +179,21 @@ const Entries = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2.5">
+                    <Label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">লেখকের ধরন</Label>
+                    <Select onValueChange={(val: 'main' | 'assistant') => {
+                      setWriterType(val);
+                      setFormData({...formData, writerId: '', rate: ''});
+                    }} value={writerType}>
+                      <SelectTrigger className="h-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-indigo-500">
+                        <SelectValue placeholder="ধরন বেছে নিন" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
+                        <SelectItem value="main" className="rounded-xl my-1">প্রধান লেখক</SelectItem>
+                        <SelectItem value="assistant" className="rounded-xl my-1">সহকারী লেখক</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2.5">
                     <Label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">লেখক নির্বাচন করুন</Label>
                     <Select onValueChange={handleWriterChange} value={formData.writerId}>
                       <SelectTrigger className="h-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:ring-indigo-500">
@@ -185,10 +202,10 @@ const Entries = () => {
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-slate-100 shadow-xl max-h-[300px]">
-                        {writers.length === 0 ? (
+                        {writers.filter(w => (w.type || 'main') === writerType).length === 0 ? (
                           <div className="p-4 text-center text-xs text-slate-400 font-bold">কোনো লেখক পাওয়া যায়নি</div>
                         ) : (
-                          writers.map(w => (
+                          writers.filter(w => (w.type || 'main') === writerType).map(w => (
                             <SelectItem key={w.id} value={w.id} className="rounded-xl my-1 focus:bg-indigo-50 focus:text-indigo-600 transition-colors">
                               <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500">

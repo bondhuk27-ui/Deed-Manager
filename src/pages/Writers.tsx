@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db, collection, addDoc, onSnapshot, query, orderBy, Timestamp, deleteDoc, doc, updateDoc } from '@/src/firebase';
+import { db, collection, addDoc, onSnapshot, query, orderBy, Timestamp, deleteDoc, doc, updateDoc, where } from '@/src/firebase';
 import { Writer } from '@/src/types';
 import { handleFirestoreError, OperationType } from '@/src/lib/firestore-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,11 @@ const Writers = () => {
   const [newWriter, setNewWriter] = useState({ name: '', rate: '', previousBalance: '' });
 
   useEffect(() => {
-    const q = query(collection(db, 'writers'), orderBy('createdAt', 'desc'));
+    const q = query(
+      collection(db, 'writers'), 
+      where('type', '==', 'main'),
+      orderBy('createdAt', 'desc')
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const writersData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -47,6 +51,7 @@ const Writers = () => {
         name: newWriter.name,
         rate: Number(newWriter.rate),
         previousBalance: Number(newWriter.previousBalance) || 0,
+        type: 'main',
         createdAt: Timestamp.now()
       });
       toast.success("লেখক সফলভাবে যোগ করা হয়েছে");

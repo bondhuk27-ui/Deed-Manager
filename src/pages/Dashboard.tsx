@@ -60,9 +60,10 @@ const Dashboard = () => {
     return () => { unsubWriters(); unsubEntries(); unsubPayments(); };
   }, []);
 
-  const summaries: WriterSummary[] = writers.map(writer => {
-    const writerEntries = entries.filter(e => e.writerId === writer.id);
-    const writerPayments = payments.filter(p => p.writerId === writer.id);
+  const summaries: WriterSummary[] = writers
+    .map(writer => {
+      const writerEntries = entries.filter(e => e.writerId === writer.id);
+      const writerPayments = payments.filter(p => p.writerId === writer.id);
     
     // Filter for today if toggled
     const displayEntries = showTodayOnly 
@@ -273,24 +274,28 @@ const Dashboard = () => {
         <Card className="border-none shadow-2xl shadow-slate-200 rounded-[2rem] overflow-hidden bg-white">
           <CardHeader className="p-8 border-b border-slate-50">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <CardTitle className="text-2xl font-black text-slate-800">লেখক অনুযায়ী হিসাব</CardTitle>
-              <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
-                <Button 
-                  variant={!showTodayOnly ? "secondary" : "ghost"} 
-                  size="sm" 
-                  onClick={() => setShowTodayOnly(false)}
-                  className={cn("rounded-lg font-bold text-[10px] uppercase tracking-wider h-8 px-4", !showTodayOnly && "bg-white shadow-sm")}
-                >
-                  সকল সময়
-                </Button>
-                <Button 
-                  variant={showTodayOnly ? "secondary" : "ghost"} 
-                  size="sm" 
-                  onClick={() => setShowTodayOnly(true)}
-                  className={cn("rounded-lg font-bold text-[10px] uppercase tracking-wider h-8 px-4", showTodayOnly && "bg-white shadow-sm")}
-                >
-                  আজকের
-                </Button>
+              <CardTitle className="text-2xl font-black text-slate-800">
+                লেখকদের হিসাব
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+                  <Button 
+                    variant={!showTodayOnly ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => setShowTodayOnly(false)}
+                    className={cn("rounded-lg font-bold text-[10px] uppercase tracking-wider h-8 px-4", !showTodayOnly && "bg-white shadow-sm")}
+                  >
+                    সকল সময়
+                  </Button>
+                  <Button 
+                    variant={showTodayOnly ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={() => setShowTodayOnly(true)}
+                    className={cn("rounded-lg font-bold text-[10px] uppercase tracking-wider h-8 px-4", showTodayOnly && "bg-white shadow-sm")}
+                  >
+                    আজকের
+                  </Button>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -300,6 +305,7 @@ const Dashboard = () => {
                 <TableHeader>
                   <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
                     <TableHead className="px-8 py-5 font-bold text-slate-400 uppercase tracking-widest text-[10px]">লেখকের নাম</TableHead>
+                    <TableHead className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">ধরন</TableHead>
                     <TableHead className="text-center font-bold text-slate-400 uppercase tracking-widest text-[10px]">{showTodayOnly ? "আজকের কাজ" : "মোট কাজ"}</TableHead>
                     <TableHead className="text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">{showTodayOnly ? "আজকের পাওনা" : "মোট পাওনা"}</TableHead>
                     <TableHead className="text-right font-bold text-slate-400 uppercase tracking-widest text-[10px]">{showTodayOnly ? "আজকের পেমেন্ট" : "মোট পেমেন্ট"}</TableHead>
@@ -320,19 +326,42 @@ const Dashboard = () => {
                     summaries.map((s, idx) => (
                       <TableRow 
                         key={s.writer.id} 
-                        className="hover:bg-indigo-50/30 transition-colors border-slate-50 cursor-pointer group"
+                        className={cn(
+                          "hover:bg-indigo-50/30 transition-colors border-slate-50 cursor-pointer group",
+                          (s.writer.type || 'main') === 'main' ? "relative" : ""
+                        )}
                         onClick={() => handleWriterClick(s.writer.id, s.writer.name)}
                       >
                         <TableCell className="px-8 py-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-black text-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <div className={cn(
+                              "w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-all duration-300",
+                              (s.writer.type || 'main') === 'main' 
+                                ? "bg-gradient-to-br from-amber-400 to-yellow-600 text-white shadow-lg shadow-amber-200" 
+                                : "bg-slate-100 text-slate-500 group-hover:bg-indigo-600 group-hover:text-white"
+                            )}>
                               {s.writer.name[0]}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{s.writer.name}</span>
+                              <span className={cn(
+                                "font-bold transition-colors",
+                                (s.writer.type || 'main') === 'main' ? "gold-shimmer text-lg" : "text-slate-700 group-hover:text-indigo-600"
+                              )}>
+                                {s.writer.name}
+                              </span>
                               <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">ক্লিক করে আজকের কাজ দেখুন</span>
                             </div>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={cn(
+                            "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest",
+                            (s.writer.type || 'main') === 'main' 
+                              ? "bg-amber-100 text-amber-600" 
+                              : "bg-blue-100 text-blue-600"
+                          )}>
+                            {(s.writer.type || 'main') === 'main' ? "প্রধান" : "সহকারী"}
+                          </span>
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="inline-flex items-center px-4 py-1.5 rounded-xl text-xs font-black bg-indigo-50 text-indigo-600">

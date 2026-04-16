@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db, collection, onSnapshot } from '@/src/firebase';
+import { db, collection, onSnapshot, query, orderBy } from '@/src/firebase';
 import { DeedEntry } from '@/src/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -32,7 +32,8 @@ const Income = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'entries'), 
+    const q = query(collection(db, 'entries'), orderBy('date', 'desc'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, 
       (s) => {
         setEntries(s.docs.map(d => ({ id: d.id, ...d.data() })) as DeedEntry[]);
         setLoading(false);
@@ -152,9 +153,9 @@ const Income = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse">
-                  <thead>
+                  <thead className="sticky top-0 z-10 bg-white shadow-sm">
                     <tr className="bg-slate-50/50">
                       <th className="px-8 py-5 font-bold text-slate-400 uppercase tracking-widest text-[10px]">তারিখ</th>
                       <th className="px-4 py-5 font-bold text-slate-400 uppercase tracking-widest text-[10px]">বিবরণ</th>
@@ -164,7 +165,7 @@ const Income = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {entries.slice(0, 10).map((e) => (
+                    {entries.map((e) => (
                       <tr key={e.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-8 py-5">
                           <span className="text-[10px] font-black font-mono bg-slate-100 text-slate-500 px-2 py-1 rounded-md">{e.date}</span>
@@ -180,9 +181,18 @@ const Income = () => {
                         <td className="px-8 py-5 text-right font-black text-emerald-600">{e.totalAmount - (e.serviceCost || 0)} ৳</td>
                       </tr>
                     ))}
-                    {entries.length === 0 && (
+                    {entries.length === 0 && !loading && (
                       <tr>
-                        <td colSpan={3} className="px-8 py-20 text-center text-slate-400 font-bold">কোনো এন্ট্রি পাওয়া যায়নি</td>
+                        <td colSpan={5} className="px-8 py-20 text-center text-slate-400 font-bold">কোনো এন্ট্রি পাওয়া যায়নি</td>
+                      </tr>
+                    )}
+                    {loading && (
+                      <tr>
+                        <td colSpan={5} className="px-8 py-20 text-center">
+                          <div className="flex justify-center">
+                            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        </td>
                       </tr>
                     )}
                   </tbody>
